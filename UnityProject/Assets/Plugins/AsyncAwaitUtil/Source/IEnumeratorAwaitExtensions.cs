@@ -85,6 +85,14 @@ public static class IEnumeratorAwaitExtensions
         return awaiter;
     }
 
+    public static SimpleCoroutineAwaiter<T> GetAwaiter<T>(this AsyncInstantiateOperation<T> instruction) where T : UnityEngine.Object
+    {
+        var awaiter = new SimpleCoroutineAwaiter<T>();
+        RunOnUnityScheduler(() => AsyncCoroutineRunner.Instance.StartCoroutine(
+            InstructionWrappers.InstantiateAsyncAPI<T>(awaiter, instruction)));
+        return awaiter;
+    }
+
     public static SimpleCoroutineAwaiter<T> GetAwaiter<T>(this IEnumerator<T> coroutine)
     {
         var awaiter = new SimpleCoroutineAwaiter<T>();
@@ -387,6 +395,12 @@ public static class IEnumeratorAwaitExtensions
         {
             yield return instruction;
             awaiter.Complete(instruction.asset, null);
+        }
+
+        public static IEnumerator InstantiateAsyncAPI<T>(SimpleCoroutineAwaiter<T> awaiter, AsyncInstantiateOperation<T> instruction) where T : UnityEngine.Object
+        {
+            yield return instruction;
+            awaiter.Complete(instruction.Result[0], null);
         }
 
         public static IEnumerator ResourceRequest(
